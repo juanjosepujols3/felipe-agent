@@ -65,7 +65,18 @@ Después de instalar, en cualquier proyecto:
 
 - Node.js 18+
 - [Claude Code](https://claude.ai/code) instalado (`npm install -g @anthropic-ai/claude-code`)
-- Licencia premium de Felipe Vergara (el MCP requiere autenticación)
+- **Licencia premium o pro de Felipe Vergara** — el MCP requiere autenticación
+
+## Autenticación
+
+El npx instala todo, pero la primera vez que uses una skill Claude Code te pedirá autenticarte:
+
+```
+felipe-mcp needs authentication → Login with your Felipe Vergara account
+```
+
+Sigue el flujo OAuth, pon tus credenciales de la plataforma de Felipe, y listo.
+Sin licencia premium el servidor devuelve 401 en cada skill.
 
 ## Estructura del repo
 
