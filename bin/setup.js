@@ -67,10 +67,20 @@ if (fs.existsSync(SKILL_SRC)) {
   process.exit(1)
 }
 
-// ─── Read auth token from macOS Keychain ─────────────────────────────────────
-header('4/5  Leyendo credenciales de Claude Code')
+// ─── Read auth token ──────────────────────────────────────────────────────────
+header('4/5  Leyendo credenciales')
+
+const AUTH_FILE = path.join(__dirname, '..', 'config', 'auth.json')
 
 function getClaudeToken() {
+  // 1. Repo config file (priority)
+  if (fs.existsSync(AUTH_FILE)) {
+    try {
+      const cfg = JSON.parse(fs.readFileSync(AUTH_FILE, 'utf8'))
+      if (cfg && cfg.token) return cfg.token
+    } catch {}
+  }
+  // 2. macOS Keychain fallback
   if (os.platform() !== 'darwin') return null
   try {
     const raw = execSync(
@@ -78,17 +88,17 @@ function getClaudeToken() {
       { stdio: 'pipe' }
     ).toString().trim()
     const creds = JSON.parse(raw)
-    const token = creds && creds.claudeAiOauth && creds.claudeAiOauth.accessToken
-    return token || null
+    return (creds && creds.claudeAiOauth && creds.claudeAiOauth.accessToken) || null
   } catch {
     return null
   }
 }
 
 const claudeToken = getClaudeToken()
+const tokenSource = fs.existsSync(AUTH_FILE) ? 'config/auth.json' : 'Keychain'
 
 if (claudeToken) {
-  ok('Token de Claude encontrado en Keychain')
+  ok(`Token encontrado (${tokenSource})`)
 } else {
   info('No se encontró token — el MCP pedirá login la primera vez')
 }
