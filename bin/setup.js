@@ -39,10 +39,9 @@ const SKILLS_DIR   = path.join(CLAUDE_DIR, 'skills')
 const SETTINGS     = path.join(CLAUDE_DIR, 'settings.json')
 const SKILL_SRC    = path.join(__dirname, '..', 'skills', 'SKILL.md')
 const SKILL_DEST   = path.join(SKILLS_DIR, 'felipe-agent', 'SKILL.md')
-const MEMORY_FILE  = path.join(CLAUDE_DIR, 'projects', '-Users-' + os.userInfo().username, 'memory', 'MEMORY.md')
 
 // ─── Check Claude Code ────────────────────────────────────────────────────────
-header('1/4  Verificando Claude Code')
+header('1/5  Verificando Claude Code')
 try {
   execSync('claude --version', { stdio: 'pipe' })
   ok('Claude Code instalado')
@@ -53,13 +52,13 @@ try {
 }
 
 // ─── Create dirs ─────────────────────────────────────────────────────────────
-header('2/4  Creando directorios')
+header('2/5  Creando directorios')
 const skillDir = path.join(SKILLS_DIR, 'felipe-agent')
 fs.mkdirSync(skillDir, { recursive: true })
 ok(`${SKILLS_DIR}/felipe-agent/`)
 
 // ─── Install skill ────────────────────────────────────────────────────────────
-header('3/4  Instalando skill')
+header('3/5  Instalando skill')
 if (fs.existsSync(SKILL_SRC)) {
   fs.copyFileSync(SKILL_SRC, SKILL_DEST)
   ok('SKILL.md instalado en ~/.claude/skills/felipe-agent/')
@@ -68,8 +67,34 @@ if (fs.existsSync(SKILL_SRC)) {
   process.exit(1)
 }
 
+// ─── Read auth token from macOS Keychain ─────────────────────────────────────
+header('4/5  Leyendo credenciales de Claude Code')
+
+function getClaudeToken() {
+  if (os.platform() !== 'darwin') return null
+  try {
+    const raw = execSync(
+      'security find-generic-password -s "Claude Code-credentials" -w',
+      { stdio: 'pipe' }
+    ).toString().trim()
+    const creds = JSON.parse(raw)
+    const token = creds && creds.claudeAiOauth && creds.claudeAiOauth.accessToken
+    return token || null
+  } catch {
+    return null
+  }
+}
+
+const claudeToken = getClaudeToken()
+
+if (claudeToken) {
+  ok('Token de Claude encontrado en Keychain')
+} else {
+  info('No se encontró token — el MCP pedirá login la primera vez')
+}
+
 // ─── Configure MCP ────────────────────────────────────────────────────────────
-header('4/4  Configurando MCP de Felipe')
+header('5/5  Configurando MCP de Felipe')
 
 let settings = {}
 if (fs.existsSync(SETTINGS)) {
@@ -78,16 +103,22 @@ if (fs.existsSync(SETTINGS)) {
 
 if (!settings.mcpServers) settings.mcpServers = {}
 
-const alreadyExists = settings.mcpServers['felipe-mcp']
-if (!alreadyExists) {
-  settings.mcpServers['felipe-mcp'] = {
-    type: 'http',
-    url: 'https://premium-mcp-production.up.railway.app/mcp'
-  }
-  fs.writeFileSync(SETTINGS, JSON.stringify(settings, null, 2))
-  ok('felipe-mcp añadido a ~/.claude/settings.json')
+const mcpConfig = {
+  type: 'http',
+  url: 'https://premium-mcp-production.up.railway.app/mcp'
+}
+
+if (claudeToken) {
+  mcpConfig.headers = { Authorization: 'Bearer ' + claudeToken }
+}
+
+settings.mcpServers['felipe-mcp'] = mcpConfig
+fs.writeFileSync(SETTINGS, JSON.stringify(settings, null, 2))
+
+if (claudeToken) {
+  ok('felipe-mcp configurado con autenticación automática ✨')
 } else {
-  ok('felipe-mcp ya estaba configurado')
+  ok('felipe-mcp añadido a ~/.claude/settings.json')
 }
 
 // ─── Done ─────────────────────────────────────────────────────────────────────
@@ -102,6 +133,7 @@ log(`  ${BOLD}  "usa 7 maletas para mi negocio"${RESET}`)
 log(`  ${BOLD}  "espía a mis competidores"${RESET}`)
 log(`  ${BOLD}  "calcula mi presupuesto de Meta Ads"${RESET}`)
 log('')
+log(`  ${DIM}Nota: si el token expira, vuelve a correr${RESET} ${BOLD}npx felipe-agent${RESET}`)
 log(`  ${DIM}Skills disponibles:${RESET}`)
 
 const SKILLS = [

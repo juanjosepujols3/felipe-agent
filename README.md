@@ -65,18 +65,20 @@ Después de instalar, en cualquier proyecto:
 
 - Node.js 18+
 - [Claude Code](https://claude.ai/code) instalado (`npm install -g @anthropic-ai/claude-code`)
-- **Licencia premium o pro de Felipe Vergara** — el MCP requiere autenticación
+- Estar logueado en Claude Code (`claude login`)
+- **Licencia premium o pro de Felipe Vergara**
 
 ## Autenticación
 
-El npx instala todo, pero la primera vez que uses una skill Claude Code te pedirá autenticarte:
+El installer lee automáticamente el token de Claude Code desde el Keychain de macOS y lo configura en el MCP — no hace falta login extra.
 
-```
-felipe-mcp needs authentication → Login with your Felipe Vergara account
+Si el token expira (duran ~7 días), simplemente vuelve a correr:
+
+```bash
+npx felipe-agent
 ```
 
-Sigue el flujo OAuth, pon tus credenciales de la plataforma de Felipe, y listo.
-Sin licencia premium el servidor devuelve 401 en cada skill.
+Eso renueva el token automáticamente.
 
 ## Estructura del repo
 
