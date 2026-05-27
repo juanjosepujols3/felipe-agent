@@ -1,0 +1,17 @@
+{
+  "name": "felipe-agent",
+  "version": "1.0.0",
+  "description": "Agente Claude Code con las 17 skills de Felipe Vergara (Meta Ads, Investigación, Creativos)",
+  "bin": {
+    "felipe-agent": "./bin/setup.js"
+  },
+  "scripts": {
+    "start": "node bin/setup.js"
+  },
+  "keywords": ["claude", "mcp", "meta-ads", "felipe-vergara", "marketing"],
+  "author": "juanjosepujols3",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  }
+}
